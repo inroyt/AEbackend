@@ -1,13 +1,13 @@
 const express = require('express');
 const router = express.Router();
 
-router.get('/api/logout', (req, res) => {
+router.get('/api/logout', (req, res) => {//console.log('loggedout successfully');
     // Destroy the session to log the user out
     req.session.destroy((err) => {
       if (err) {
         console.error('Error destroying session:',err);
       }
-      res.send('Logged out successfully!');
+      res.status(200).json({message:'Logged out successfully!'});
     });
   });
 

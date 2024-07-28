@@ -22,87 +22,55 @@ function generateClientId() {
 }
 
 router.ws('/chat', (ws, req) => {
-  //console.log('WebSocket connected');
-
   const userId = req.query.userId;
-  console.log(`WebSocket connected for user ID: ${userId}`);
+  //console.log(`WebSocket connected for user ID: ${userId}`);
 
-  // Generate a client ID for the user if it doesn't exist
-  let clientId = userClientIds.get(userId);
-  if (!clientId) {
-    clientId = generateClientId(); // Implement a function to generate unique client IDs
-    userClientIds.set(userId, clientId);
-  }
-
-  // Associate the clientName with the WebSocket connection
-  ws.clientName = userId;
-
-  console.log(`Client ID: ${clientId}`);
-
-  // Store the client ID with the WebSocket connection
-  ws.clientId = clientId;
-  wss.clients.add(ws);
-
-  // Add the user to the list of connected users
+  // Store the WebSocket connection with the user ID
+  userClientIds.set(userId, ws);
   connectedUsers.add(userId);
   connectedUsers.delete(undefined);
-  const userList = Array.from(connectedUsers).join("','");
-  console.log(`Connected users: '${userList}'`);
+  // const userList = Array.from(connectedUsers).join("','");
+  //console.log(`Connected users: '${userList}'`);
 
-  // Send a welcome message to the connected user
- // ws.send(`Welcome, ${userId}! Connected users: '${userList}'`);
-
-  
   ws.on('message', (message) => {
-    console.log(`Received message: ${message}`);
-    //console.log(wss.clients);
+   // console.log(`Received message: ${message}`);
+
     try {
       const receivedMessage = JSON.parse(message);
-      console.log('Parsed message:', receivedMessage);
+     // console.log('Parsed message:', receivedMessage);
 
-      // Find the WebSocket connection associated with the receiver's name
       const receiverName = receivedMessage.receiver;
-      const receiverClient = Array.from(wss.clients).find((client) => {
-        // Compare the receiver's name with the clientName property
-        return client !== ws && client.clientName === receiverName;
-      });
-      console.log('Receiver client state:', receiverClient.readyState);
-      if (receiverClient) {
-        setTimeout(() => {
-          if (receiverClient.readyState === WebSocket.OPEN) {
-            console.log('Receiver Client is OPEN');
-            // Send the message to the specific receiver
-            receiverClient.send(JSON.stringify(receivedMessage));
-          } else {
-            console.log(`Receiver client is not in OPEN state`);
-            // Handle the case where the receiver client is not in an OPEN state
-          }
-        }, 1000); // Adjust the timeout duration as needed
-        
+      const receiverWs = userClientIds.get(receiverName);
+
+      if (receiverWs) {
+       // console.log(`Sending message to receiver: ${receiverName}`);
+        receiverWs.send(JSON.stringify(receivedMessage));
+      } /**
+      else {
+        // console.log(`Receiver '${receiverName}' is not connected.`);
+        // Handle the case where the receiver is not connected
+        // You may choose to notify the sender or handle it differently
       }
+      */
     } catch (error) {
       console.error('Error parsing JSON:', error);
     }
   });
+
   ws.on('close', () => {
-    // Remove the client's WebSocket connection when it is closed
-    console.log(`Client ${clientId} disconnected`);
-  
-    // Mark the user as disconnected but wait for some time before fully removing them
-    setTimeout(() => {
-      if (!connectedUsers.has(userId)) {
-        // Remove the user from the list of connected users
-        connectedUsers.delete(userId);
-        const userList = Array.from(connectedUsers).join("','");
-        console.log(`Connected users: '${userList}'`);
-      }
-    }, 30000); // Adjust the timeout duration as needed
+   // console.log(`WebSocket connection closed for user ID: ${userId}`);
+
+    // Remove the WebSocket connection and user from the sets
+    userClientIds.delete(userId);
+    connectedUsers.delete(userId);
+    //const userList = Array.from(connectedUsers).join("','");
+   // console.log(`Connected users: '${userList}'`);
   });
-  
 
   ws.on('error', (error) => {
     console.error('WebSocket error:', error);
   });
 });
+
 
 module.exports = router;

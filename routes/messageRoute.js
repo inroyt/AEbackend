@@ -1,103 +1,134 @@
 const express = require('express');
+const { body, validationResult, param, query } = require('express-validator');
 const router = express.Router();
-const { MongoClient } = require('mongodb');
+const { MongoClient, ObjectId } = require('mongodb');
 const client = new MongoClient(process.env.DATABASE_URI);
 const db = client.db('assamemployment');
-const message = db.collection('messages');
 const profiles = db.collection('users');
+const message = db.collection('messages');
+const supportMsg = db.collection('support');
 
-router.post('/api/sendMessage', (req, res) => {// console.log(req.body);
-    try{
-        const rawMessage = req.body.message;
-        const sender = rawMessage.sender;
-        const receiver = rawMessage.receiver;
-        const text=rawMessage.text;
-        const timestamp=rawMessage.timestamp;
-        const preciseMessage = {
-          "sender": sender,
-          "receiver": receiver,
-          "text": text,
-          "timestamp": timestamp,
-          "isUnread":true // Store the timestamp in milliseconds since Unix epoch
-      };//console.log("precise message",preciseMessage);
-    message.insertOne(preciseMessage);
-    res.json({ success: true });
-    }catch(err){
-        console.error('Error sending message:', err);
-        res.status(500).send('Error sending message');
+// Route to send a message
+router.post('/api/sendMessage', [
+  body('message.sender').notEmpty().withMessage('Sender is required'),
+  body('message.receiver').notEmpty().withMessage('Receiver is required'),
+  body('message.text').notEmpty().withMessage('Message text is required'),
+  body('message.timestamp').isNumeric().withMessage('Timestamp must be a number')
+], async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ message: errors.array() });
+  }
+
+  try {
+    const rawMessage = req.body.message;
+    const sLinkname=rawMessage.sender
+    const rLinkname=rawMessage.receiver
+    const sender = await profiles.findOne({ linkname: sLinkname });
+    const receiver = await profiles.findOne({ linkname: rLinkname });
+    const senderId = sender._id.toString();
+    const receiverId = receiver._id.toString();  
+    if (!sender || !receiver) {
+      return res.status(400).json({ message: 'Invalid sender or receiver ID' });
     }
-    
-  });
-// API endpoint for retrieving messages between two users
-router.get('/api/getMessages/:user1/:user2', async (req, res) => { console.log("getting conversations..."); 
+    if (sender.blockedUsers.includes(receiverId) || receiver.blockedUsers.includes(senderId)) {
+      return res.status(403).json({ message: 'Message cannot be sent. One of the users has blocked the other.' });
+    }
+    const preciseMessage = {
+      sender: rawMessage.sender,
+      receiver: rawMessage.receiver,
+      text: rawMessage.text,
+      timestamp: rawMessage.timestamp,
+      isUnread: true
+    };
+
+    await message.insertOne(preciseMessage);
+    res.status(200).json({ success: true });
+  } catch (err) {
+    console.error('Error sending message:', err);
+    res.status(500).send({ message: 'Error sending message' });
+  }
+});
+
+// Route to get messages between two users
+router.get('/api/getMessages/:user1/:user2', [
+  param('user1').notEmpty().withMessage('User1 is required'),
+  param('user2').notEmpty().withMessage('User2 is required'),
+  query('page').optional().isInt({ min: 1 }).withMessage('Page must be a positive integer')
+], async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ message: errors.array() });
+  }
+
   try {
     const { user1, user2 } = req.params;
-    const page = parseInt(req.query.page) || 1; // Get page number from query parameter (default: 1)
-    const perPage = 7; // Messages per page
+    const page = parseInt(req.query.page) || 1;
+    const perPage = 7;
 
     const messagesArray = await message
       .find({
         $or: [
           { sender: user1, receiver: user2 },
-          { sender: user2, receiver: user1 },
+          { sender: user2, receiver: user1 }
         ],
-        deletedForUsers: { $nin: [user1] }, // Exclude messages deleted for user1 or user2
+        deletedForUsers: { $nin: [user1] }
       })
-      .sort({ timestamp: -1 }) // Sort messages by descending timestamp
-      .skip((page - 1) * perPage) // Skip messages for previous pages
-      .limit(perPage) // Limit messages per page
+      .sort({ timestamp: -1 })
+      .skip((page - 1) * perPage)
+      .limit(perPage)
       .toArray();
 
     messagesArray.reverse();
-  // Update isUnread to false for the messages retrieved
-  const updateUnreadPromises = messagesArray.map(async (msg) => {
-    if (msg.isUnread===true) {
-      // Update isUnread to false if it was true
-      await message.updateOne({ _id: msg._id }, { $set: { isUnread: false } });
-    }
-  });
 
-  await Promise.all(updateUnreadPromises);
+    const updateUnreadPromises = messagesArray.map(async (msg) => {
+      if (msg.isUnread === true) {
+        await message.updateOne({ _id: msg._id }, { $set: { isUnread: false } });
+      }
+    });
 
-    if (messagesArray.length > 0) {
-      res.json(messagesArray);
-    }
+    await Promise.all(updateUnreadPromises);
+
+    res.status(200).json(messagesArray);
   } catch (err) {
     console.error('Error fetching messages:', err);
-    res.status(500).send('Error fetching messages');
+    res.status(500).json({ message: 'Error fetching messages' });
   }
 });
-// API endpoint for retrieving inbox conversations
-router.get('/api/inbox/:linkname', async (req, res) => {
+
+// Route to get inbox conversations
+router.get('/api/inbox/:linkname', [
+  param('linkname').notEmpty().withMessage('Linkname is required')
+], async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ message: errors.array() });
+  }
+
   try {
     const { linkname } = req.params;
 
-    // Find messages where the specified user is the sender or receiver and messages are not deleted
     const messagesArray = await message.find({
       $or: [
         { sender: linkname, deletedForUsers: { $nin: [linkname] } },
-        { receiver: linkname, deletedForUsers: { $nin: [linkname] } },
-      ],
+        { receiver: linkname, deletedForUsers: { $nin: [linkname] } }
+      ]
     }).toArray();
 
-    // Get unique list of other users
     const otherUsers = Array.from(new Set(messagesArray.map((message) =>
       (message.sender === linkname ? message.receiver : message.sender))));
 
-    // Fetch the names, _id, and picture of other users from the 'users' collection
     const userInfos = await db.collection('users').find({ linkname: { $in: otherUsers } }).toArray();
 
-    // Create a map for quick info lookup based on linkname
     const userInfoMap = {};
     userInfos.forEach((userInfo) => {
       userInfoMap[userInfo.linkname] = {
         _id: userInfo._id,
         name: userInfo.name,
-        picture: userInfo.picture,
+        picture: userInfo.picture
       };
     });
 
-    // Group messages by user and get the last message for each user
     const conversations = messagesArray.reduce((acc, message) => {
       const otherUser = message.sender === linkname ? message.receiver : message.sender;
 
@@ -106,10 +137,10 @@ router.get('/api/inbox/:linkname', async (req, res) => {
       if (!existingConversation) {
         acc.push({
           linkname: otherUser,
-          ...userInfoMap[otherUser], // Include _id, name, and picture
+          ...userInfoMap[otherUser],
           lastMessage: message.text,
           timestamp: message.timestamp,
-          unreadCount: (linkname !== message.sender && message.isUnread) ? 1 : 0, // Check if the message is unread and sender is not the requester
+          unreadCount: (linkname !== message.sender && message.isUnread) ? 1 : 0
         });
       } else {
         if (message.timestamp > existingConversation.timestamp) {
@@ -125,60 +156,129 @@ router.get('/api/inbox/:linkname', async (req, res) => {
       return acc;
     }, []);
 
-    // console.log(conversations);
-    res.json(conversations);
+    res.status(200).json(conversations);
   } catch (error) {
-    res.status(500).json({ error: 'Error retrieving inbox conversations' });
+    res.status(500).json({ message: 'Error retrieving inbox conversations' });
   }
 });
 
-    
-    //  route to delete all messages between two users
-    router.delete('/api/deleteMessages/:user1/:user2', async (req, res) => {
-      try {
-        const { user1, user2 } = req.params;
-      
-        // Find the messages between the two specified users
-        const messages = await message.find({
-          $or: [
-            { sender: user1, receiver: user2 },
-            { sender: user2, receiver: user1 },
-          ],
-        }).toArray();
-    
-        if (!messages || messages.length === 0) {
-          return res.send({ success: false, message: `No messages found between ${user1} and ${user2}` });
-        }
-    
-        // Determine the user initiating the deletion
-        const initiatingUser = user1;
-    
-        // Update the 'deletedForUsers' array for each message
-        const updatePromises = messages.map(async msg => {
-          const updateObj = { $addToSet: { deletedForUsers: initiatingUser } };
-    
-          await message.updateOne({ _id: msg._id }, updateObj);
-         
-          // Check if both users are in the 'deletedForUsers' array, then delete the message
-          const messageDoc = await message.findOne({ _id: msg._id }); console.log(messageDoc);
-          const deletedForUsers = messageDoc.deletedForUsers || [];
-    
-          if (deletedForUsers.includes(user1) && deletedForUsers.includes(user2)) {
-            // Both users have deleted the message, so remove it
-            await message.deleteOne({ _id: msg._id });
-          }
-        });
-    
-        await Promise.all(updatePromises);
-    
-        res.send({ success: true, message: `Messages deleted for ${initiatingUser}` });
-      } catch (error) {
-        console.error('Error deleting messages:', error);
-        res.status(500).send({ error: 'Error deleting messages' });
+// Route to delete all messages between two users
+router.delete('/api/deleteMessages/:user1/:user2', [
+  param('user1').notEmpty().withMessage('User1 is required'),
+  param('user2').notEmpty().withMessage('User2 is required')
+], async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ message: errors.array() });
+  }
+
+  try {
+    const { user1, user2 } = req.params;
+
+    const messages = await message.find({
+      $or: [
+        { sender: user1, receiver: user2 },
+        { sender: user2, receiver: user1 }
+      ]
+    }).toArray();
+
+    if (!messages || messages.length === 0) {
+      return res.status(400).json({ success: false, message: `No messages found between ${user1} and ${user2}` });
+    }
+
+    const initiatingUser = user1;
+
+    const updatePromises = messages.map(async msg => {
+      const updateObj = { $addToSet: { deletedForUsers: initiatingUser } };
+
+      await message.updateOne({ _id: msg._id }, updateObj);
+
+      const messageDoc = await message.findOne({ _id: msg._id });
+      const deletedForUsers = messageDoc.deletedForUsers || [];
+
+      if (deletedForUsers.includes(user1) && deletedForUsers.includes(user2)) {
+        await message.deleteOne({ _id: msg._id });
       }
     });
-    
+
+    await Promise.all(updatePromises);
+
+    res.status(200).json({ success: true, message: `Messages deleted for ${initiatingUser}` });
+  } catch (error) {
+    console.error('Error deleting messages:', error);
+    res.status(500).send({ message: 'Error deleting messages' });
+  }
+});
+
+// Route to post support queries
+router.post('/api/support', [
+  body('email').notEmpty().withMessage('Sender Email is required'),
+  body('query').notEmpty().withMessage('Query is required'),
+  body('message').notEmpty().withMessage('Message is required'),
+  body('timestamp').isInt({ gt: 0 }).withMessage('Timestamp must be a positive integer')
+], async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ message: errors.array() });
+  }
+
+  try {
+    const incomingQuery = req.body;
+    await supportMsg.insertOne(incomingQuery);
+    res.status(200).json({ message: "Support query sent successfully" });
+  } catch (error) {
+    console.error('Failed to insert the post:', error);
+    res.status(500).json({ message: 'Failed to upload the post' });
+  }
+});
+
+// Route to get support queries
+router.get('/api/supportQueries', [
+  query('page').optional().isInt({ min: 1 }).withMessage('Page must be a positive integer')
+], async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ message: errors.array() });
+  }
+
+  const page = parseInt(req.query.page) || 1;
+  const perPage = 5;
+
+  try {
+    const supportQueries = await supportMsg.find()
+      .sort({ timestamp: -1 })
+      .skip((page - 1) * perPage)
+      .limit(perPage)
+      .toArray();
+
+    res.status(200).json(supportQueries);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch queries' });
+  }
+});
+
+// Route to delete a query
+router.delete('/api/supportQueries/delete/:queryId', [
+  param('queryId').isMongoId().withMessage('Invalid query ID')
+], async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ message: errors.array() });
+  }
+
+  const { queryId } = req.params;
+
+  try {
+    const deleteResult = await supportMsg.deleteOne({ _id: new ObjectId(queryId) });
+
+    if (deleteResult.deletedCount === 0) {
+      return res.status(404).json({ message: 'Query not found or already deleted' });
+    }
+
+    res.status(200).json({ message: 'Query deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to delete query' });
+  }
+});
+
 module.exports = router;
-
-      
-
