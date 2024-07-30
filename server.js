@@ -50,11 +50,11 @@ app.use(session({
   cookie: {
     secure: false, // Set to true in a production environment with HTTPS
     sameSite: 'none', // Enable cross-site usage
-    maxAge: 86400000, // Session cookie expiry set to 1 hour
+    maxAge: 86400000, // Session cookie expiry set to 24 hours
   },
   store: MongoStore.create({
     mongoUrl: process.env.DATABASE_URI,
-    ttl: 60 * 60 * 24, // Session time to live: 1 hour
+    ttl: 60 * 60 * 24, // Session time to live: 24 hours
   }),
 }));
 
