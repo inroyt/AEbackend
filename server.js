@@ -6,7 +6,10 @@ const MongoStore = require('connect-mongo');
 const mongoose = require('mongoose');
 const connectDB = require('./config/dbConn');
 require('dotenv').config();
-const port = process.env.PORT || 3500;
+const fs = require('fs');
+const https = require('https');
+// Port for HTTPS
+const port = process.env.PORT || 443;
 
 // Routes
 const loginRoutes = require('./routes/loginRoutes');
@@ -48,13 +51,13 @@ app.use(session({
   resave: false,
   saveUninitialized: false, // Avoid creating a session until something is stored
   cookie: {
-    secure: false, // Set to true in a production environment with HTTPS
+    secure: true, // Set to true in a production environment with HTTPS
     sameSite: 'none', // Enable cross-site usage
-    maxAge: 86400000, // Session cookie expiry set to 1 hour
+    maxAge: 86400000, // Session cookie expiry set to 24 hours
   },
   store: MongoStore.create({
     mongoUrl: process.env.DATABASE_URI,
-    ttl: 60 * 60 * 24, // Session time to live: 1 hour
+    ttl: 60 * 60 * 24, // Session time to live: 24 hours
   }),
 }));
 
@@ -67,10 +70,16 @@ app.use('/', messageRoute);
 app.use('/', websocketRoute);
 app.use('/', searchRoute);
 app.use('/', otpRoute);
+// Read the SSL certificate and key
+const options = {
+  key: fs.readFileSync('/etc/letsencrypt/live/assamemployment.org/privkey.pem'),
+  cert: fs.readFileSync('/etc/letsencrypt/live/assamemployment.org/fullchain.pem'),
+};
+
 // Start the server once the database connection is open
 mongoose.connection.once('open', () => {
-  console.log("Connected to MongoDB");
-  app.listen(port,'0.0.0.0', () => {
-    console.log(`Server running on port ${port}`);
+  console.log('Connected to MongoDB');
+  https.createServer(options, app).listen(port, '0.0.0.0', () => {
+    console.log(`Server running on https://assamemployment.org`);
   });
 });
