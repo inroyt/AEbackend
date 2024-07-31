@@ -72,8 +72,8 @@ app.use('/', searchRoute);
 app.use('/', otpRoute);
 // Read the SSL certificate and key
 const options = {
-  key: fs.readFileSync('/etc/letsencrypt/live/assamemployment.org/privkey.pem'),
-  cert: fs.readFileSync('/etc/letsencrypt/live/assamemployment.org/fullchain.pem'),
+  key: fs.readFileSync('/etc/nginx/ssl/origin_private_key.pem'),
+  cert: fs.readFileSync('/etc/nginx/ssl/origin_certificate.pem'),
 };
 
 // Start the server once the database connection is open
