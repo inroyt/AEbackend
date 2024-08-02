@@ -73,10 +73,9 @@ app.use('/', otpRoute);
 // Read the SSL certificate and key
 const options = {
   key: fs.readFileSync('/etc/nginx/ssl/origin_private_key.pem'),
-  cert: fs.readFileSync('/etc/nginx/ssl/origin_certificate.pem'),
-  ca: fs.readFileSync('/etc/pki/tls/certs/ca-bundle.crt')
+  cert: fs.readFileSync('/etc/nginx/ssl/origin_certificate.pem')
 };
-
+//ca: fs.readFileSync('/etc/pki/tls/certs/ca-bundle.crt')
 // Start the server once the database connection is open
 mongoose.connection.once('open', () => {
   console.log('Connected to MongoDB');
