@@ -74,7 +74,7 @@ app.use('/', otpRoute);
 const options = {
   key: fs.readFileSync('/etc/nginx/ssl/origin_private_key.pem'),
   cert: fs.readFileSync('/etc/nginx/ssl/origin_certificate.pem'),
-  ca: fs.readFileSync('/etc/pki/tls/certs/ca-bundle.pem')
+  ca: fs.readFileSync('/etc/pki/tls/certs/ca-bundle.crt')
 };
 //ca: [fs.readFileSync('/etc/pki/tls/certs/ca-bundle.crt'),fs.readFileSync('/etc/pki/tls/certs/ca-bundle.crt')]
 // Start the server once the database connection is open
