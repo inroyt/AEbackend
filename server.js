@@ -73,7 +73,7 @@ app.use('/', otpRoute);
 // Read the SSL certificate and key
 const options = {
   key: fs.readFileSync('/etc/nginx/ssl/origin_private_key.pem'),
-  cert: fs.readFileSync('/etc/nginx/ssl/full_chain.pem'),
+  cert: fs.readFileSync('/etc/nginx/ssl/origin_certificate.pem'),
   ca: fs.readFileSync('/etc/pki/tls/certs/ca-bundle.crt')
 };
 //ca: [fs.readFileSync('/etc/pki/tls/certs/ca-bundle.crt'),fs.readFileSync('/etc/pki/tls/certs/ca-bundle.crt')]
