@@ -26,11 +26,11 @@ connectDB();
 
 // CORS Configuration (Consider using corsOptions if necessary)
 
-
+//http://localhost:3000','http://192.168.0.177:3000','http://192.168.29.88:3000',
 
 app.use(cors({
   origin: function (origin, callback) {
-    const allowedOrigins = ['http://localhost:3000','http://192.168.0.177:3000','http://192.168.29.88:3000','https://www.assamemployment.org','https://assamemployment.org'];
+    const allowedOrigins = ['https://www.assamemployment.org','https://assamemployment.org'];
     if (!origin || allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
