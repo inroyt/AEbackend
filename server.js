@@ -29,7 +29,14 @@ connectDB();
 //http://localhost:3000','http://192.168.0.177:3000','http://192.168.29.88:3000',
 
 app.use(cors({
-  origin: '*',
+  origin: function (origin, callback) {
+    const allowedOrigins = ['https://www.assamemployment.org','https://assamemployment.org'];
+    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
   credentials: true // to support sending cookies with CORS requests
 }));
