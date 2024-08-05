@@ -82,7 +82,5 @@ mongoose.connection.once('open', () => {
   console.log('Connected to MongoDB');
   https.createServer(options, app).listen(port, '0.0.0.0', () => {
     console.log(`Server running on https://assamemployment.org`);
-    res.writeHead(200);
-  res.end('Hello World\n');
   });
 });
