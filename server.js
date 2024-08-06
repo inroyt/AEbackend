@@ -77,7 +77,7 @@ const options = {
   ca: fs.readFileSync('/etc/pki/tls/certs/ca-bundle.crt')
 };
 const testFile = fs.readFileSync('/tmp/testfile', 'utf8');
-console.log(testFile);
+console.log("test:",testFile);
 //ca: [fs.readFileSync('/etc/pki/tls/certs/ca-bundle.crt'),fs.readFileSync('/etc/pki/tls/certs/ca-bundle.crt')]
 // Start the server once the database connection is open
 mongoose.connection.once('open', () => {
