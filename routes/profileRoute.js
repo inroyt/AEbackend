@@ -32,7 +32,7 @@ const parseDataMiddleware = (req, res, next) => {
     return res.status(400).json({ message: 'Post data is required' });
   }
 };
-router.get('/api/profile', (req, res) => {
+router.get('/profile', (req, res) => {
     // Access user-specific data from the session
     const user = req.session.user;//console.log("profile session:",req.session.id,user);
     if(user!==undefined) {
