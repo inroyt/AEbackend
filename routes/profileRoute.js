@@ -32,7 +32,7 @@ const parseDataMiddleware = (req, res, next) => {
     return res.status(400).json({ message: 'Post data is required' });
   }
 };
-router.get('/profile', (req, res) => {
+router.get('/api/profile', (req, res) => {
     // Access user-specific data from the session
     const user = req.session.user;//console.log("profile session:",req.session.id,user);
     if(user!==undefined) {
@@ -146,7 +146,7 @@ router.get('/profile', (req, res) => {
       res.status(500).json({ message: "Internal Server Error" });
     }
   });
-  router.get('/profile/:linkname', [
+  router.get('/api/profile/:linkname', [
     check('linkname').notEmpty().withMessage('Linkname must be a non-empty string')
   ],
   async (req, res) => {

@@ -108,7 +108,7 @@ const handleRawUser = async (rawUserData, preciseUserData, collection, req, res)
     }
 };
 
-router.post('/login', [
+router.post('/api/login', [
     body('USER_CREDENTIAL').optional().notEmpty().withMessage('USER_CREDENTIAL cannot be empty'),
     body('loginData.name').optional().notEmpty().withMessage('Name cannot be empty'),
     body('loginData.email').optional().isEmail().withMessage('Invalid email format'),
