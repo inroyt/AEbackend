@@ -77,9 +77,13 @@ const options = {
   ca: fs.readFileSync('/etc/pki/tls/certs/ca-bundle.crt')
 };
 const testFile = fs.readFileSync('/tmp/testfile', 'utf8');
-console.log(testFile);
+console.log("test:",testFile);
 //ca: [fs.readFileSync('/etc/pki/tls/certs/ca-bundle.crt'),fs.readFileSync('/etc/pki/tls/certs/ca-bundle.crt')]
 // Start the server once the database connection is open
+app.get('/test', (req, res) => {
+  res.send('Server is working');
+});
+
 mongoose.connection.once('open', () => {
   console.log('Connected to MongoDB');
   https.createServer(options, app).listen(port, '0.0.0.0', () => {
