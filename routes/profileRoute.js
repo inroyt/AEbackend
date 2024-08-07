@@ -146,7 +146,7 @@ router.get('/profile', (req, res) => {
       res.status(500).json({ message: "Internal Server Error" });
     }
   });
-  router.get('/api/profile/:linkname', [
+  router.get('/profile/:linkname', [
     check('linkname').notEmpty().withMessage('Linkname must be a non-empty string')
   ],
   async (req, res) => {
