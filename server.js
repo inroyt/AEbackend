@@ -9,7 +9,7 @@ require('dotenv').config();
 const fs = require('fs');
 const https = require('https');
 // Port for HTTPS
-const port = process.env.PORT || 3500;
+const PORT = 3500;
 
 // Routes
 const loginRoutes = require('./routes/loginRoutes');
@@ -71,12 +71,22 @@ app.use('/', websocketRoute);
 app.use('/', searchRoute);
 app.use('/', otpRoute);
 // Read the SSL certificate and key
-const PORT = 3500;
-
+const options = {
+  key: fs.readFileSync('/home/ec2-user/origin_private_key.pem'),
+  cert: fs.readFileSync('/etc/nginx/ssl/origin_certificate.pem'),
+  ca: fs.readFileSync('/etc/pki/tls/certs/ca-bundle.crt')
+};
+const testFile = fs.readFileSync('/tmp/testfile', 'utf8');
+console.log("test:",testFile);
+//ca: [fs.readFileSync('/etc/pki/tls/certs/ca-bundle.crt'),fs.readFileSync('/etc/pki/tls/certs/ca-bundle.crt')]
+// Start the server once the database connection is open
 app.get('/test', (req, res) => {
-    res.send('Server is working');
+  res.send('Server is working');
 });
 
-app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
+mongoose.connection.once('open', () => {
+  console.log('Connected to MongoDB');
+  https.createServer(options, app).listen(PORT,() => {
+    console.log(`Server running on https://assamemployment.org`);
+  });
 });
