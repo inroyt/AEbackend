@@ -34,7 +34,7 @@ const parseDataMiddleware = (req, res, next) => {
     return res.status(400).json({ message: 'Post data is required' });
   }
 };
-router.get('/api/posts', async (req, res) => {
+router.get('/posts', async (req, res) => {
   const page = parseInt(req.query.page) || 1; // Current page number
   const perPage = 5; // Number of items per page
   
