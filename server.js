@@ -9,7 +9,7 @@ require('dotenv').config();
 const fs = require('fs');
 const https = require('https');
 // Port for HTTPS
-const PORT = 3500;
+const PORT = process.env.PORT;
 
 // Routes
 const loginRoutes = require('./routes/loginRoutes');
