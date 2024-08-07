@@ -57,7 +57,7 @@ router.get('/posts', async (req, res) => {
   }
 });
 
-router.get('/api/socialPosts', async (req, res) => {
+router.get('/socialPosts', async (req, res) => {
   const page = parseInt(req.query.page) || 1; // Current page number
   const perPage = 5; // Number of items per page
   
@@ -80,7 +80,7 @@ router.get('/api/socialPosts', async (req, res) => {
   }
 });
 
-router.get('/api/post/:postId', [
+router.get('/post/:postId', [
   check('postId').isMongoId().withMessage('Invalid postId format')
 ], async (req, res) => {
   const { postId } = req.params;
@@ -105,7 +105,7 @@ router.get('/api/post/:postId', [
 });
 
 //Route for adding a post
-router.post('/api/addPost',upload.single('image'),parseDataMiddleware, [
+router.post('/addPost',upload.single('image'),parseDataMiddleware, [
   // Validate and sanitize fields
   check('data').notEmpty().withMessage('Post data is required'),
   check('data.postedById').notEmpty().withMessage('PostedById is required'),
@@ -173,7 +173,7 @@ router.post('/api/addPost',upload.single('image'),parseDataMiddleware, [
   }
 });
 
-router.put('/api/editPost/:postId', upload.single('image'),parseDataMiddleware, [
+router.put('/editPost/:postId', upload.single('image'),parseDataMiddleware, [
   // Validate and sanitize fields
   check('data').notEmpty().withMessage('Post data is required'),
   check('postId').isMongoId().withMessage('Invalid postId format'),
@@ -262,7 +262,7 @@ router.put('/api/editPost/:postId', upload.single('image'),parseDataMiddleware, 
 });
 
 
-router.delete('/api/deletePost/:postId', [
+router.delete('/deletePost/:postId', [
   check('postId').isMongoId().withMessage('Invalid postId format')
 ], async (req, res) => {
   const { postId } = req.params;
@@ -295,7 +295,7 @@ router.delete('/api/deletePost/:postId', [
 });
 
 
-router.post('/api/incrementLikes/:profileId/:postId', 
+router.post('/incrementLikes/:profileId/:postId', 
   [
     check('profileId').isMongoId().withMessage('Invalid profileId format'),
     check('postId').isMongoId().withMessage('Invalid postId format')
@@ -347,7 +347,7 @@ router.post('/api/incrementLikes/:profileId/:postId',
    }
  });
 
-router.post('/api/decrementLikes/:profileId/:postId', [
+router.post('/decrementLikes/:profileId/:postId', [
   check('profileId').isMongoId().withMessage('Invalid profileId format'),
   check('postId').isMongoId().withMessage('Invalid postId format')
 ], async (req, res) => {
@@ -399,7 +399,7 @@ router.post('/api/decrementLikes/:profileId/:postId', [
    }
  });
 
- router.get('/api/getComments/:postId',
+ router.get('/getComments/:postId',
   [
     check('postId').isMongoId().withMessage('Invalid post ID format'),
     check('page').optional().isInt({ gt: 0 }).withMessage('Page must be a positive integer')
@@ -452,7 +452,7 @@ router.post('/api/decrementLikes/:profileId/:postId', [
   }
 });
 //Route for addding comments
-router.post('/api/addComment', [
+router.post('/addComment', [
   check('text').notEmpty().withMessage('Text content is required'),
   check('userId').isMongoId().withMessage('Invalid userId format'),
   check('postId').isMongoId().withMessage('Invalid postId format'),
@@ -474,7 +474,7 @@ router.post('/api/addComment', [
 });
 
 //route for editing comments
-router.post('/api/post/comment/edit/:commentId',
+router.post('/post/comment/edit/:commentId',
   [
     check('commentId')
       .isMongoId().withMessage('Invalid comment ID format'),
@@ -517,7 +517,7 @@ router.post('/api/post/comment/edit/:commentId',
 });
 
 //Route for deleting comments
-router.delete('/api/post/comment/delete/:commentId', [
+router.delete('/post/comment/delete/:commentId', [
   check('commentId').isMongoId().withMessage('Invalid commentId format')
 ], async (req, res) => { 
   const { commentId } = req.params;//console.log("dlelete comment route working",commentId)
@@ -619,7 +619,7 @@ async (req, res) => {
 
 });
 //Send the saved posts to the profile component in frontend
-router.get('/api/savedPosts/:profileId',[
+router.get('/savedPosts/:profileId',[
   check('profileId').isMongoId().withMessage('Invalid profile ID format'),
 ],
 async (req, res) => {
@@ -664,7 +664,7 @@ async (req, res) => {
  }
 });
 //Send the own posts to the profile component in frontend
-router.get('/api/ownPosts/:profileId',[
+router.get('/ownPosts/:profileId',[
   check('profileId').isMongoId().withMessage('Invalid profile ID format'),
 ],
 async (req, res) => {

@@ -9,7 +9,7 @@ const message = db.collection('messages');
 const supportMsg = db.collection('support');
 
 // Route to send a message
-router.post('/api/sendMessage', [
+router.post('/sendMessage', [
   body('message.sender').notEmpty().withMessage('Sender is required'),
   body('message.receiver').notEmpty().withMessage('Receiver is required'),
   body('message.text').notEmpty().withMessage('Message text is required'),
@@ -51,7 +51,7 @@ router.post('/api/sendMessage', [
 });
 
 // Route to get messages between two users
-router.get('/api/getMessages/:user1/:user2', [
+router.get('/getMessages/:user1/:user2', [
   param('user1').notEmpty().withMessage('User1 is required'),
   param('user2').notEmpty().withMessage('User2 is required'),
   query('page').optional().isInt({ min: 1 }).withMessage('Page must be a positive integer')
@@ -97,7 +97,7 @@ router.get('/api/getMessages/:user1/:user2', [
 });
 
 // Route to get inbox conversations
-router.get('/api/inbox/:linkname', [
+router.get('/inbox/:linkname', [
   param('linkname').notEmpty().withMessage('Linkname is required')
 ], async (req, res) => {
   const errors = validationResult(req);
@@ -163,7 +163,7 @@ router.get('/api/inbox/:linkname', [
 });
 
 // Route to delete all messages between two users
-router.delete('/api/deleteMessages/:user1/:user2', [
+router.delete('/deleteMessages/:user1/:user2', [
   param('user1').notEmpty().withMessage('User1 is required'),
   param('user2').notEmpty().withMessage('User2 is required')
 ], async (req, res) => {
@@ -211,7 +211,7 @@ router.delete('/api/deleteMessages/:user1/:user2', [
 });
 
 // Route to post support queries
-router.post('/api/support', [
+router.post('/support', [
   body('email').notEmpty().withMessage('Sender Email is required'),
   body('query').notEmpty().withMessage('Query is required'),
   body('message').notEmpty().withMessage('Message is required'),
@@ -233,7 +233,7 @@ router.post('/api/support', [
 });
 
 // Route to get support queries
-router.get('/api/supportQueries', [
+router.get('/supportQueries', [
   query('page').optional().isInt({ min: 1 }).withMessage('Page must be a positive integer')
 ], async (req, res) => {
   const errors = validationResult(req);
@@ -258,7 +258,7 @@ router.get('/api/supportQueries', [
 });
 
 // Route to delete a query
-router.delete('/api/supportQueries/delete/:queryId', [
+router.delete('/supportQueries/delete/:queryId', [
   param('queryId').isMongoId().withMessage('Invalid query ID')
 ], async (req, res) => {
   const errors = validationResult(req);

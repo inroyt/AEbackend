@@ -30,7 +30,7 @@ const sendOTP = async (phoneNumber, otp) => {
 };
 
 // OTP request for applying
-router.post('/api/request-otp/:postId', [
+router.post('/request-otp/:postId', [
     param('postId').notEmpty().withMessage('Post ID is required'),
     body('phoneNumber').isMobilePhone('en-IN').withMessage('Invalid phone number')
 ], async (req, res) => {
@@ -58,7 +58,7 @@ router.post('/api/request-otp/:postId', [
 });
 
 // Verify OTP response
-router.post('/api/verify-otp', [
+router.post('/verify-otp', [
     body('phoneNumber').isMobilePhone('en-IN').withMessage('Invalid phone number'),
     body('otp').isLength({ min: 6, max: 6 }).withMessage('OTP must be 6 digits')
 ], async (req, res) => {
@@ -100,7 +100,7 @@ router.post('/api/verify-otp', [
 });
 
 // OTP request for forgot password
-router.post('/api/request-otp-forgot-password', [
+router.post('/request-otp-forgot-password', [
     body('phoneNumber').isMobilePhone('en-IN').withMessage('Invalid phone number')
 ], async (req, res) => {
     const errors = validationResult(req);
@@ -133,7 +133,7 @@ router.post('/api/request-otp-forgot-password', [
 });
 
 // Verify OTP response for resetting password
-router.post('/api/verify-otp-forgot-password', [
+router.post('/verify-otp-forgot-password', [
     body('phoneNumber').isMobilePhone('en-IN').withMessage('Invalid phone number'),
     body('otp').isLength({ min: 6, max: 6 }).withMessage('OTP must be 6 digits')
 ], async (req, res) => {

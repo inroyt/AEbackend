@@ -49,7 +49,7 @@ router.get('/profile', (req, res) => {
    // Number of followers per page
 
    router.get(
-    '/api/profile/:id/followers',
+    '/profile/:id/followers',
     [
       check('id').isMongoId().withMessage('Invalid profile ID'),
       check('page').optional().isInt({ min: 1 }).withMessage('Page must be a positive integer')
@@ -99,7 +99,7 @@ router.get('/profile', (req, res) => {
   );
   
   
-  router.get('/api/profile/:id/following',  [
+  router.get('/profile/:id/following',  [
     check('id').isMongoId().withMessage('Invalid profile ID'),
     check('page').optional().isInt({ min: 1 }).withMessage('Page must be a positive integer')
   ],
@@ -168,7 +168,7 @@ router.get('/profile', (req, res) => {
      res.status(200).json(profileFound);
    }
   });
-  router.get('/api/profileById/:userId', [
+  router.get('/profileById/:userId', [
     check('userId').isMongoId().withMessage('Invalid user ID'),
   ],
   async (req, res) => {
@@ -373,7 +373,7 @@ async (req, res) => {
 
 })
 
-router.get('/api/ownComments/:profileId', [
+router.get('/ownComments/:profileId', [
   check('profileId').isMongoId().withMessage('Invalid profile ID'),
   check('page').optional().isInt({ min: 1 }).withMessage('Page must be a positive integer')
 ],
@@ -423,7 +423,7 @@ async (req, res) => {
   }
 });
 
-router.post('/api/editProfile/:profileId', upload.single('image'), parseDataMiddleware, [
+router.post('/editProfile/:profileId', upload.single('image'), parseDataMiddleware, [
   // Validate and sanitize fields
   check('profileId').isMongoId().withMessage('Invalid profile ID'),
   check('data').notEmpty().withMessage('Post data is required'),
@@ -577,7 +577,7 @@ router.post('/api/editProfile/:profileId', upload.single('image'), parseDataMidd
 
 
 //get applyList from the OTP list
-router.get('/api/applyList', [
+router.get('/applyList', [
   check('page').optional().isInt({ min: 1 }).withMessage('Page must be a positive integer')
 ],
 async (req, res) => {
@@ -631,7 +631,7 @@ async (req, res) => {
 });
 
 // route for deleting apllyList
-router.delete('/api/applyList/delete/:queryId',  [
+router.delete('/applyList/delete/:queryId',  [
   check('queryId').isMongoId().withMessage('Invalid query ID'),
 ],
 async (req, res) => {
@@ -656,7 +656,7 @@ async (req, res) => {
     res.status(500).json({ message: 'Failed to delete query' });
   }
 });
-router.post('/api/resetPassword',[
+router.post('/resetPassword',[
   check('newPassword').notEmpty().withMessage('Password cannot be empty'),
   check('userId').isMongoId().withMessage('Invalid userId'),
 ], async (req, res) => {

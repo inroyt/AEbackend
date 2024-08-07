@@ -51,7 +51,7 @@ app.use(session({
   resave: false,
   saveUninitialized: false, // Avoid creating a session until something is stored
   cookie: {
-    secure: true, // Set to true in a production environment with HTTPS
+    secure: false, // Set to true in a production environment with HTTPS
     sameSite: 'none', // Enable cross-site usage
     maxAge: 86400000, // Session cookie expiry set to 24 hours
   },
@@ -71,18 +71,6 @@ app.use('/', websocketRoute);
 app.use('/', searchRoute);
 app.use('/', otpRoute);
 // Read the SSL certificate and key
-const options = {
-  key: fs.readFileSync('/home/ec2-user/origin_private_key.pem'),
-  cert: fs.readFileSync('/etc/nginx/ssl/origin_certificate.pem'),
-  ca: fs.readFileSync('/etc/pki/tls/certs/ca-bundle.crt')
-};
-const testFile = fs.readFileSync('/tmp/testfile', 'utf8');
-console.log("test:",testFile);
-//ca: [fs.readFileSync('/etc/pki/tls/certs/ca-bundle.crt'),fs.readFileSync('/etc/pki/tls/certs/ca-bundle.crt')]
-// Start the server once the database connection is open
-app.get('/test', (req, res) => {
-  res.send('Server is working');
-});
 
 mongoose.connection.once('open', () => {
   console.log('Connected to MongoDB');

@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 
-router.get('/api/logout', (req, res) => {//console.log('loggedout successfully');
+router.get('/logout', (req, res) => {//console.log('loggedout successfully');
     // Destroy the session to log the user out
     req.session.destroy((err) => {
       if (err) {
