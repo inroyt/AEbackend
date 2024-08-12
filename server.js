@@ -51,7 +51,7 @@ app.use(session({
   resave: false,
   saveUninitialized: false, // Avoid creating a session until something is stored
   cookie: {
-    secure: false, // Set to true in a production environment with HTTPS
+    secure: false, // Set to true in a production environment with HTTPS only if ssl is terminated at the backend server 
     sameSite: 'none', // Enable cross-site usage
     maxAge: 86400000, // Session cookie expiry set to 24 hours
   },
