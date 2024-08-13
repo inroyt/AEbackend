@@ -49,17 +49,19 @@ app.use(express.urlencoded({ extended: true }));
 app.use(session({
   secret: process.env.ACCESS_TOKEN_SECRET,
   resave: false,
-  saveUninitialized: false, // Avoid creating a session until something is stored
+  saveUninitialized: false,
   cookie: {
-    secure: false, // Set to true in a production environment with HTTPS only if ssl is terminated at the backend server 
-    sameSite: 'none', // Enable cross-site usage
-    maxAge: 86400000, // Session cookie expiry set to 24 hours
+    secure: true, // Set to true in production with HTTPS
+    sameSite:'none', // Use 'none' for cross-site cookies with HTTPS, 'lax' or 'strict' otherwise
+    maxAge: 86400000, // 24 hours
+    domain: '.assamemployment.org', // Adjust as needed
   },
   store: MongoStore.create({
     mongoUrl: process.env.DATABASE_URI,
-    ttl: 60 * 60 * 24, // Session time to live: 24 hours
+    ttl: 60 * 60 * 24, // 24 hours
   }),
 }));
+
 
 // Routes
 app.use('/', loginRoutes);
