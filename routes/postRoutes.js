@@ -117,7 +117,7 @@ router.post('/addPost',upload.single('image'),parseDataMiddleware, [
   check('data.organization').optional().isString().withMessage('Organization must be a string'),
   check('data.date').optional().custom(isValidDateFormat).withMessage('Date must be in dd-mm-yyyy format'),
   check('data.qualification').optional().isString().withMessage('Qualification must be a string'),
-  check('data.vacancy').optional().isInt({ gt: 0 }).withMessage('Vacancy must be a positive integer'),
+  check('data.vacancy').optional({ nullable: true }).isInt({ gt: 0 }).withMessage('Vacancy must be a positive integer'),
   check('data.category').optional().isString().withMessage('Category must be a string'),
   check('data.timestamp').isInt({ gt: 0 }).withMessage('Timestamp must be a positive integer')
 ],  async (req, res) => {
@@ -186,7 +186,7 @@ router.put('/editPost/:postId', upload.single('image'),parseDataMiddleware, [
   check('data.organization').optional().isString().withMessage('Organization must be a string'),
   check('data.date').optional().custom(isValidDateFormat).withMessage('Date must be in dd-mm-yyyy format'),
   check('data.qualification').optional().isString().withMessage('Qualification must be a string'),
-  check('data.vacancy').optional().isInt({ gt: 0 }).withMessage('Vacancy must be a positive integer'),
+  check('data.vacancy').optional({ nullable: true }).isInt({ gt: 0 }).withMessage('Vacancy must be a positive integer'),
   check('data.category').optional().isString().withMessage('Category must be a string'),
   check('link').optional().isURL().withMessage('Link must be a valid URL'),
   check('imageUrl').optional().isURL().withMessage('Image URL must be a valid URL'),
