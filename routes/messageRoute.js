@@ -26,8 +26,8 @@ router.post('/sendMessage', [
     const rLinkname=rawMessage.receiver
     const sender = await profiles.findOne({ linkname: sLinkname });
     const receiver = await profiles.findOne({ linkname: rLinkname });
-    const senderId = sender._id.toString();
-    const receiverId = receiver._id.toString();  
+    const senderId = sender._id;
+    const receiverId = receiver._id;
     if (!sender || !receiver) {
       return res.status(400).json({ message: 'Invalid sender or receiver ID' });
     }
