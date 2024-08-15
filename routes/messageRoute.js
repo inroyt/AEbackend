@@ -22,19 +22,26 @@ router.post('/sendMessage', [
 
   try {
     const rawMessage = req.body.message;
-    const sLinkname=rawMessage.sender
-    const rLinkname=rawMessage.receiver
+    const sLinkname = rawMessage.sender;
+    const rLinkname = rawMessage.receiver;
+
     const sender = await profiles.findOne({ linkname: sLinkname });
     const receiver = await profiles.findOne({ linkname: rLinkname });
-    const senderId = sender._id.toString();
-    const receiverId = receiver._id.toString(); 
-    console.log("sender id: " + senderId + " receiver id: " + receiverId); 
+
     if (!sender || !receiver) {
       return res.status(400).json({ message: 'Invalid sender or receiver ID' });
     }
-    if (sender.blockedUsers.includes(receiverId) || receiver.blockedUsers.includes(senderId)) {
+
+    const senderId = sender._id.toString();
+    const receiverId = receiver._id.toString();
+
+   // console.log("sender id: " + senderId + " receiver id: " + receiverId);
+
+    // Check if either user has blocked the other
+    if (sender?.blockedUsers?.includes(receiverId) || receiver?.blockedUsers?.includes(senderId)) {
       return res.status(403).json({ message: 'Message cannot be sent. One of the users has blocked the other.' });
     }
+
     const preciseMessage = {
       sender: rawMessage.sender,
       receiver: rawMessage.receiver,
@@ -50,6 +57,7 @@ router.post('/sendMessage', [
     res.status(500).send({ message: 'Error sending message' });
   }
 });
+
 
 // Route to get messages between two users
 router.get('/getMessages/:user1/:user2', [
